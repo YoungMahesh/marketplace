@@ -58,6 +58,12 @@ model User {
     sessions      Session[]
 }
 
+model UserCred {
+    id String @id @default(cuid())
+    username String @unique
+    password String 
+}
+
 model VerificationToken {
     identifier String
     token      String   @unique
