@@ -41,14 +41,21 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   callbacks: {
-    session: ({ session, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.sub,
-      },
-    }),
+    session: ({ session, token }) => {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: token.sub,
+        },
+      };
+    },
+    // jwt({token, account, profile}) {
+    //   console.log({token, account, profile})
+    //   return token;
+    // }
   },
+
   // adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -57,25 +64,36 @@ export const authOptions: NextAuthOptions = {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (credentials) {
           const { username, password } = credentials;
-          const user = await prisma.userCred.findUnique({
+          const userCred = await prisma.userCred.findUnique({
             where: {
               username,
             },
+            include: {
+              user: true,
+            },
           });
 
-          if (user === null) {
-            return await prisma.userCred.create({
+          if (userCred === null) {
+            const userCred1 = await prisma.userCred.create({
               data: {
                 username,
                 password,
+                user: {
+                  create: {
+                    name: username,
+                  },
+                },
+              },
+              include: {
+                user: true,
               },
             });
+            return userCred1.user;
           }
-
-          if (password === user.password) return user;
+          if (password === userCred.password) return userCred.user;
           return null;
         }
         return null;
