@@ -18,6 +18,15 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**.contabostorage.com',
+      },
+    ],
+  },
 };
 
 export default config;
