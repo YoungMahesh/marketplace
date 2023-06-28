@@ -12,7 +12,13 @@ export default function ItemBox({
   return (
     <section className="card m-4 w-96 bg-base-100 shadow-xl">
       <figure>
-        <Image src={image} width={250} height={250} alt="item" />
+        <Image
+          className="mask mask-squircle"
+          src={image}
+          width={250}
+          height={250}
+          alt="item"
+        />
       </figure>
       <div className="card-body">
         <h2 className="card-title">{name}</h2>
