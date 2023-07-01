@@ -1,7 +1,5 @@
-// import { signIn, signOut, useSession } from "next-auth/react";
 import Head from "next/head";
 import Header from "~/components/Header/Header";
-// import Link from "next/link";
 import ItemBox from "~/components/Home/ItemBox";
 import { api } from "~/utils/api";
 
