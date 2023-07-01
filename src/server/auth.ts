@@ -22,6 +22,7 @@ declare module "next-auth" {
       id: string;
       // ...other properties
       // role: UserRole;
+      name: string;
     } & DefaultSession["user"];
   }
 
