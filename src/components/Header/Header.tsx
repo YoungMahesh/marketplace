@@ -1,7 +1,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 export default function Header() {
+  const router = useRouter();
   const { data: sessionData } = useSession();
 
   return (
@@ -13,8 +15,10 @@ export default function Header() {
           height={70}
           priority={true}
           alt="shop"
+          onClick={() => void router.push("/")}
+          className="cursor-pointer"
         />
-      </div>{" "}
+      </div>
       <div className="flex">
         <div className="mx-2">
           {sessionData && sessionData.user ? (

@@ -14,5 +14,7 @@ const uploadItems = async () => {
   }
 };
 
-uploadItems().catch((err) => console.log(err));
+uploadItems()
+  .then(() => console.log("cart-items created in database"))
+  .catch((err) => console.log(err));
 // run `npx tsx src/seed/items.seed.ts` to execute this file
