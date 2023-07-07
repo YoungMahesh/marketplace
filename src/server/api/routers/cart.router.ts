@@ -2,7 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
 export const cartRouter = createTRPCRouter({
-  get: protectedProcedure.query(async ({ ctx }) => {
+  getCart: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.cart.findUnique({
       where: {
         userId: ctx.session.user.id,
