@@ -20,9 +20,15 @@ export default function Header() {
         />
       </div>
       <div className="flex">
-        <div className="mx-2">
+        <div className="mx-2 cursor-pointer">
           {sessionData && sessionData.user ? (
-            <Image src="/cart.svg" width={50} height={50} alt="cart" />
+            <Image
+              src="/cart.svg"
+              width={50}
+              height={50}
+              alt="cart"
+              onClick={() => void router.push("/cart")}
+            />
           ) : null}
         </div>
         <div className="ml-2">

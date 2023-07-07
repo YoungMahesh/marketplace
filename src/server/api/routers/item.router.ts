@@ -1,8 +1,23 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 
 export const itemRouter = createTRPCRouter({
-  getAll: protectedProcedure.query(async ({ ctx }) => {
+  get: publicProcedure
+    .input(z.object({ itemId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const { itemId } = input;
+      return await ctx.prisma.item.findUnique({
+        where: {
+          id: itemId,
+        },
+      });
+    }),
+
+  getAll: publicProcedure.query(async ({ ctx }) => {
     return await ctx.prisma.item.findMany({
       take: 10,
     });

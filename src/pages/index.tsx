@@ -4,9 +4,10 @@ import ItemBox from "~/components/Home/ItemBox";
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const { data: itemsList, isLoading: itemsListLoading } = api.item.getAll.useQuery();
+  const { data: itemsList, isLoading: itemsListLoading } =
+    api.item.getAll.useQuery();
 
-  console.log('itemsList', itemsList)
+  console.log("itemsList", itemsList);
   return (
     <>
       <Head>
