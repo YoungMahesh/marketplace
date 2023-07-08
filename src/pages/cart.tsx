@@ -3,6 +3,12 @@ import Image from "next/image";
 import Header from "~/components/Header/Header";
 import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
+import LoadingImg from "public/loading.gif";
+import {
+  MinusCircleIcon,
+  PlusCircleIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
 
 export default function Home() {
   const { data: sessionData } = useSession();
@@ -27,7 +33,7 @@ export default function Home() {
               if (cartLoading) return <p>Loading...</p>;
               if (cartObj)
                 return (
-                  <div className="flex flex-wrap justify-around">
+                  <div className="ml-auto mr-auto w-80 md:w-96">
                     {cartObj.cartItems.map((it, idx) => (
                       <CartItemBox
                         key={idx}
@@ -66,21 +72,36 @@ const CartItemBox = ({
     );
 
   return (
-    <div className="flex items-center justify-center">
-      <div>
-        {itemInfo ? (
-          <Image src={itemInfo.image} height={70} width={70} alt="cart-item" />
-        ) : null}
-      </div>
-      <div>
-        <h6>{itemInfo ? itemInfo.name : "Loading..."}</h6>
-        <div>
-          <button>-</button> <span>{quantity}</span> <button>+</button>
+    <section className="mx-2 my-4 rounded border p-2">
+      <div className="flex">
+        <Image
+          className="mask mask-squircle"
+          src={itemInfo ? itemInfo.image : LoadingImg}
+          height={90}
+          width={90}
+          alt="cart-item"
+        />
+        <div className="prose ml-4">
+          <h4 className="">{itemInfo ? itemInfo.name : "Loading..."}</h4>
+          <p>&#8377; {itemInfo ? itemInfo.price : "-"}</p>
         </div>
       </div>
-      <div>
-        <button>Remove</button>
+      <div className="ml-2 mt-2 flex justify-between">
+        <div className="flex items-center">
+          <button>
+            <MinusCircleIcon className="h-8 w-8" />
+          </button>
+          <span className="mx-2">{quantity}</span>
+          <button>
+            <PlusCircleIcon className="h-8 w-8" />
+          </button>
+        </div>
+        <div>
+          <button>
+            <TrashIcon className="h-8 w-8" />
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
