@@ -9,6 +9,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { useState } from "react";
 
 export default function Home() {
   const { data: sessionData } = useSession();
@@ -17,7 +18,6 @@ export default function Home() {
     { enabled: sessionData && sessionData.user ? true : false }
   );
 
-  console.log("cartObj", cartObj);
   return (
     <>
       <Head>
@@ -38,6 +38,7 @@ export default function Home() {
                       <CartItemBox
                         key={idx}
                         itemId={it.itemId}
+                        cartItemId={it.id}
                         quantity={it.quantity}
                       />
                     ))}
@@ -55,14 +56,38 @@ export default function Home() {
 
 const CartItemBox = ({
   itemId,
+  cartItemId,
   quantity,
 }: {
   itemId: number;
+  cartItemId: number;
   quantity: number;
 }) => {
+  const [quant1, setQuant1] = useState(quantity);
   const { data: itemInfo, isError: itemInfoErr } = api.item.get.useQuery({
     itemId,
   });
+  const { refetch: refetchCartItems } = api.cart.getCart.useQuery();
+
+  const { mutateAsync: updateQuantity } = api.cart.updateQuantity.useMutation();
+  const { mutateAsync: removeFromCart } = api.cart.removeFromCart.useMutation();
+
+  const updateQnt = async (isIncrease: boolean) => {
+    if (isIncrease) {
+      console.log({ itemId, isIncrease });
+      setQuant1(quant1 + 1);
+      await updateQuantity({ cartItemId, isIncrease: true });
+    } else {
+      if (quant1 <= 1) return alert("Quantity cannot be less than 1");
+      setQuant1(quant1 - 1);
+      await updateQuantity({ cartItemId, isIncrease: false });
+    }
+  };
+
+  const removeFromCart1 = async () => {
+    await removeFromCart({ cartItemId });
+    await refetchCartItems();
+  };
 
   if (itemInfoErr)
     return (
@@ -88,16 +113,16 @@ const CartItemBox = ({
       </div>
       <div className="ml-2 mt-2 flex justify-between">
         <div className="flex items-center">
-          <button>
+          <button onClick={() => void updateQnt(false)}>
             <MinusCircleIcon className="h-8 w-8" />
           </button>
-          <span className="mx-2">{quantity}</span>
-          <button>
+          <span className="mx-2">{quant1}</span>
+          <button onClick={() => void updateQnt(true)}>
             <PlusCircleIcon className="h-8 w-8" />
           </button>
         </div>
         <div>
-          <button>
+          <button onClick={() => void removeFromCart1()}>
             <TrashIcon className="h-8 w-8" />
           </button>
         </div>

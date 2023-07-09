@@ -8,10 +8,25 @@ export const cartRouter = createTRPCRouter({
         userId: ctx.session.user.id,
       },
       include: {
-        cartItems: true,
+        cartItems: {
+          orderBy: {
+            id: "asc",
+          },
+        },
       },
     });
   }),
+
+  getCartItem: protectedProcedure
+    .input(z.object({ cartItemId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const { cartItemId } = input;
+      return await ctx.prisma.cartItem.findUnique({
+        where: {
+          id: cartItemId,
+        },
+      });
+    }),
 
   addToCart: protectedProcedure
     .input(z.object({ itemId: z.number(), quantity: z.number() }))
@@ -49,6 +64,34 @@ export const cartRouter = createTRPCRouter({
               },
               quantity,
             },
+          },
+        },
+      });
+    }),
+
+  updateQuantity: protectedProcedure
+    .input(z.object({ cartItemId: z.number(), isIncrease: z.boolean() }))
+    .mutation(async ({ ctx, input }) => {
+      const { cartItemId, isIncrease } = input;
+
+      const currItem = await ctx.prisma.cartItem.findUnique({
+        where: {
+          id: cartItemId,
+        },
+      });
+
+      if (currItem && currItem.quantity <= 1 && isIncrease === false) {
+        throw new Error("cart item quantity cannot be less than 1");
+      }
+
+      console.log({ cartItemId, isIncrease });
+      await ctx.prisma.cartItem.update({
+        where: {
+          id: cartItemId,
+        },
+        data: {
+          quantity: {
+            ...(isIncrease ? { increment: 1 } : { decrement: 1 }),
           },
         },
       });

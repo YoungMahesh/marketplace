@@ -9,18 +9,18 @@ datasource db {
 }
 
 model Item {
-    id          Int           @id
-    name        String
-    image       String
-    price       Float
+    id           Int           @id
+    name         String
+    image        String
+    price        Float
     transactions Transaction[]
     cartItems    CartItem[]
 }
 
 model Cart {
-    id       Int        @id @default(autoincrement())
-    userId   String     @unique
-    user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    id        Int        @id @default(autoincrement())
+    userId    String     @unique
+    user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
     cartItems CartItem[]
 }
 
@@ -31,6 +31,8 @@ model CartItem {
     itemId   Int
     item     Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
     quantity Int
+
+    @@unique([cartId, itemId])
 }
 
 model User {
@@ -41,7 +43,7 @@ model User {
     image         String?
     userCred      UserCred?
     cart          Cart?
-    transactions   Transaction[]
+    transactions  Transaction[]
 }
 
 model UserCred {
