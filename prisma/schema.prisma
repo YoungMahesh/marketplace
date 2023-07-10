@@ -18,10 +18,11 @@ model Item {
 }
 
 model Cart {
-    id        Int        @id @default(autoincrement())
-    userId    String     @unique
-    user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-    cartItems CartItem[]
+    id         Int        @id @default(autoincrement())
+    userId     String     @unique
+    user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+    cartItems  CartItem[]
+    totalPrice Int        @default(0)
 }
 
 model CartItem {

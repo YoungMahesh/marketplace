@@ -9,7 +9,7 @@ import {
   PlusCircleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 
 export default function Home() {
   const { data: sessionData } = useSession();
@@ -18,6 +18,13 @@ export default function Home() {
     { enabled: sessionData && sessionData.user ? true : false }
   );
 
+  const [totalPr, setTotalPr] = useState(0);
+
+  useEffect(() => {
+    if (cartObj) setTotalPr(cartObj.totalPrice);
+  }, [cartObj]);
+
+  console.log({ totalPr, cartObj });
   return (
     <>
       <Head>
@@ -37,11 +44,29 @@ export default function Home() {
                     {cartObj.cartItems.map((it, idx) => (
                       <CartItemBox
                         key={idx}
+                        cartId={cartObj.id}
                         itemId={it.itemId}
                         cartItemId={it.id}
                         quantity={it.quantity}
+                        setTotalPr={setTotalPr}
                       />
                     ))}
+                    <>
+                      {cartObj.cartItems.length === 0 ? (
+                        <p>Cart is Empty.</p>
+                      ) : (
+                        <>
+                          <div className="prose">
+                            <h3>Total Amount: &#8377; {totalPr} </h3>
+                          </div>
+                          <div className="mt-2 flex justify-end">
+                            <button className="btn-primary btn">
+                              Checkout
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </>
                   </div>
                 );
 
@@ -55,13 +80,17 @@ export default function Home() {
 }
 
 const CartItemBox = ({
+  cartId,
   itemId,
   cartItemId,
   quantity,
+  setTotalPr,
 }: {
+  cartId: number;
   itemId: number;
   cartItemId: number;
   quantity: number;
+  setTotalPr: Dispatch<SetStateAction<number>>;
 }) => {
   const [quant1, setQuant1] = useState(quantity);
   const { data: itemInfo, isError: itemInfoErr } = api.item.get.useQuery({
@@ -73,14 +102,16 @@ const CartItemBox = ({
   const { mutateAsync: removeFromCart } = api.cart.removeFromCart.useMutation();
 
   const updateQnt = async (isIncrease: boolean) => {
+    if (!itemInfo) return alert("Failed to fetch item info");
     if (isIncrease) {
-      console.log({ itemId, isIncrease });
       setQuant1(quant1 + 1);
-      await updateQuantity({ cartItemId, isIncrease: true });
+      setTotalPr((pr) => pr + itemInfo.price);
+      await updateQuantity({ cartId, cartItemId, isIncrease: true });
     } else {
       if (quant1 <= 1) return alert("Quantity cannot be less than 1");
       setQuant1(quant1 - 1);
-      await updateQuantity({ cartItemId, isIncrease: false });
+      setTotalPr((pr) => pr - itemInfo.price);
+      await updateQuantity({ cartId, cartItemId, isIncrease: false });
     }
   };
 
@@ -108,7 +139,7 @@ const CartItemBox = ({
         />
         <div className="prose ml-4">
           <h4 className="">{itemInfo ? itemInfo.name : "Loading..."}</h4>
-          <p>&#8377; {itemInfo ? itemInfo.price : "-"}</p>
+          <p>&#8377; {itemInfo ? itemInfo.price * quant1 : "-"}</p>
         </div>
       </div>
       <div className="ml-2 mt-2 flex justify-between">
