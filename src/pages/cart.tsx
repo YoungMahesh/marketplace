@@ -37,7 +37,20 @@ export default function Home() {
         {sessionData && sessionData.user ? (
           <div>
             {(() => {
-              if (cartLoading) return <p>Loading...</p>;
+              if (cartLoading)
+                return (
+                  <div className="ml-auto mr-auto w-80 md:w-96">
+                    {Array.from({ length: 3 }).map((el, idx) => (
+                      <CartItemBox
+                        key={idx}
+                        cartId={1}
+                        cartItemId={1}
+                        quantity={0}
+                        isLoading={true}
+                      />
+                    ))}
+                  </div>
+                );
               if (cartObj)
                 return (
                   <div className="ml-auto mr-auto w-80 md:w-96">
@@ -85,17 +98,22 @@ const CartItemBox = ({
   cartItemId,
   quantity,
   setTotalPr,
+  isLoading,
 }: {
   cartId: number;
-  itemId: number;
+  itemId?: number;
   cartItemId: number;
   quantity: number;
-  setTotalPr: Dispatch<SetStateAction<number>>;
+  setTotalPr?: Dispatch<SetStateAction<number>>;
+  isLoading?: boolean;
 }) => {
   const [quant1, setQuant1] = useState(quantity);
-  const { data: itemInfo, isError: itemInfoErr } = api.item.get.useQuery({
-    itemId,
-  });
+  const { data: itemInfo, isError: itemInfoErr } = api.item.get.useQuery(
+    {
+      itemId: itemId !== undefined ? itemId : 0,
+    },
+    { enabled: itemId !== undefined ? true : false }
+  );
   const { refetch: refetchCartItems } = api.cart.getCart.useQuery();
 
   const { mutateAsync: updateQuantity } = api.cart.updateQuantity.useMutation();
@@ -105,12 +123,12 @@ const CartItemBox = ({
     if (!itemInfo) return alert("Failed to fetch item info");
     if (isIncrease) {
       setQuant1(quant1 + 1);
-      setTotalPr((pr) => pr + itemInfo.price);
+      setTotalPr ? setTotalPr((pr) => pr + itemInfo.price) : null;
       await updateQuantity({ cartId, cartItemId, isIncrease: true });
     } else {
       if (quant1 <= 1) return alert("Quantity cannot be less than 1");
       setQuant1(quant1 - 1);
-      setTotalPr((pr) => pr - itemInfo.price);
+      setTotalPr ? setTotalPr((pr) => pr - itemInfo.price) : null;
       await updateQuantity({ cartId, cartItemId, isIncrease: false });
     }
   };
@@ -132,28 +150,32 @@ const CartItemBox = ({
       <div className="flex">
         <Image
           className="mask mask-squircle"
-          src={itemInfo ? itemInfo.image : LoadingImg}
+          src={!isLoading && itemInfo ? itemInfo.image : LoadingImg}
           height={90}
           width={90}
           alt="cart-item"
         />
         <div className="prose ml-4">
-          <h4 className="">{itemInfo ? itemInfo.name : "Loading..."}</h4>
-          <p>&#8377; {itemInfo ? itemInfo.price * quant1 : "-"}</p>
+          <h4 className="">
+            {!isLoading && itemInfo ? itemInfo.name : "Loading..."}
+          </h4>
+          <p>
+            &#8377; {!isLoading && itemInfo ? itemInfo.price * quant1 : "-"}
+          </p>
         </div>
       </div>
       <div className="ml-2 mt-2 flex justify-between">
         <div className="flex items-center">
-          <button onClick={() => void updateQnt(false)}>
+          <button onClick={() => void updateQnt(false)} disabled={isLoading}>
             <MinusCircleIcon className="h-8 w-8" />
           </button>
           <span className="mx-2">{quant1}</span>
-          <button onClick={() => void updateQnt(true)}>
+          <button onClick={() => void updateQnt(true)} disabled={isLoading}>
             <PlusCircleIcon className="h-8 w-8" />
           </button>
         </div>
         <div>
-          <button onClick={() => void removeFromCart1()}>
+          <button onClick={() => void removeFromCart1()} disabled={isLoading}>
             <TrashIcon className="h-8 w-8" />
           </button>
         </div>

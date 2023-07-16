@@ -18,8 +18,25 @@ export default function Home() {
       <Header />
       <main>
         <div>
+          {/* {Array.from({length: 6}).map((el, idx) => <ItemBox key={idx}  />)} */}
+        </div>
+        <div>
           {(() => {
-            if (itemsListLoading) return <p>Loading...</p>;
+            if (itemsListLoading)
+              return (
+                <div className="flex flex-wrap justify-around">
+                  {Array.from({ length: 6 }).map((el, idx) => (
+                    <ItemBox
+                      key={idx}
+                      id={1}
+                      name={""}
+                      image={""}
+                      price={0}
+                      isLoading={true}
+                    />
+                  ))}
+                </div>
+              );
             if (itemsList)
               return (
                 <div className="flex flex-wrap justify-around">
