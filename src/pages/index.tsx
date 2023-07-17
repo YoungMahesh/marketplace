@@ -7,7 +7,6 @@ export default function Home() {
   const { data: itemsList, isLoading: itemsListLoading } =
     api.item.getAll.useQuery();
 
-  console.log("itemsList", itemsList);
   return (
     <>
       <Head>

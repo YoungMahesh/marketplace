@@ -24,7 +24,6 @@ export default function Home() {
     if (cartObj) setTotalPr(cartObj.totalPrice);
   }, [cartObj]);
 
-  console.log({ totalPr, cartObj });
   return (
     <>
       <Head>
