@@ -17,6 +17,7 @@ export default function Home() {
     undefined,
     { enabled: sessionData && sessionData.user ? true : false }
   );
+  const { mutateAsync: createPayment } = api.stripe.createPayment.useMutation();
 
   const [totalPr, setTotalPr] = useState(0);
 
@@ -24,6 +25,16 @@ export default function Home() {
     if (cartObj) setTotalPr(cartObj.totalPrice);
   }, [cartObj]);
 
+  const checkoutTxn = async () => {
+    try {
+      const checkoutUrl = await createPayment();
+      if (!checkoutUrl) return alert("Failed to create payment");
+      console.log("checkoutUrl", checkoutUrl);
+      window.open(checkoutUrl, "_blank");
+    } catch (error) {
+      console.log(error);
+    }
+  };
   return (
     <>
       <Head>
@@ -72,7 +83,10 @@ export default function Home() {
                             <h3>Total Amount: &#8377; {totalPr} </h3>
                           </div>
                           <div className="mt-2 flex justify-end">
-                            <button className="btn-primary btn">
+                            <button
+                              className="btn-primary btn"
+                              onClick={() => void checkoutTxn()}
+                            >
                               Checkout
                             </button>
                           </div>
