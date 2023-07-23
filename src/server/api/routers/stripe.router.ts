@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import Stripe from "stripe";
 import { env } from "~/env.mjs";
 const stripe = new Stripe(env.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
@@ -46,25 +42,60 @@ export const stripeRouter = createTRPCRouter({
       cancel_url: "http://localhost:3000/cart/cancel",
     });
 
+    await ctx.prisma.payment.create({
+      data: {
+        userId: ctx.session.user.id,
+        txnHash: session.id,
+        amount: session.amount_total ? session.amount_total / 100 : 0,
+        items: line_items.map((it) => {
+          return {
+            name: it.price_data.product_data.name,
+            price: it.price_data.unit_amount / 100,
+            quantity: it.quantity,
+          };
+        }),
+      },
+    });
+
     console.log({ createPayment: session });
     return session.url;
   }),
 
-  getSessionInfo: publicProcedure
+  updateSessionInfo: protectedProcedure
     .input(z.object({ session_id: z.string() }))
     .query(async ({ ctx, input }) => {
       const session = await stripe.checkout.sessions.retrieve(input.session_id);
       if (!session) throw new Error("Session not found");
-      console.log({ getSessionInfo: session });
+
+      const payment = await ctx.prisma.payment.findUnique({
+        where: {
+          txnHash: session.id,
+        },
+      });
+      if (!payment) throw new Error("Payment not found");
+
+      if (session.payment_status === "paid" && payment.status !== "SUCCESS") {
+        await ctx.prisma.payment.update({
+          where: {
+            txnHash: session.id,
+          },
+          data: {
+            status: "SUCCESS",
+          },
+        });
+
+        await ctx.prisma.cart.update({
+          where: {
+            userId: ctx.session.user.id,
+          },
+          data: {
+            cartItems: {
+              deleteMany: {},
+            },
+          },
+        });
+      }
+
       return { session };
     }),
-
-  storePaymentInfo: protectedProcedure.mutation(async ({ ctx, input }) => {
-    const user = await ctx.prisma.user.findUnique({
-      where: {
-        id: ctx.session.user.id,
-      },
-    });
-    if (!user) throw new Error("User not found");
-  }),
 });

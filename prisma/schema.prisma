@@ -1,6 +1,6 @@
 generator client {
     provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+    previewFeatures = []
 }
 
 datasource db {
@@ -9,12 +9,11 @@ datasource db {
 }
 
 model Item {
-    id           Int           @id
-    name         String
-    image        String
-    price        Float
-    transactions Transaction[]
-    cartItems    CartItem[]
+    id        Int        @id
+    name      String
+    image     String
+    price     Float
+    cartItems CartItem[]
 }
 
 model Cart {
@@ -37,14 +36,14 @@ model CartItem {
 }
 
 model User {
-    id            String        @id @default(cuid())
+    id            String    @id @default(cuid())
     name          String
-    email         String?       @unique
+    email         String?   @unique
     emailVerified DateTime?
     image         String?
     userCred      UserCred?
     cart          Cart?
-    transactions  Transaction[]
+    payments      Payment[]
 }
 
 model UserCred {
@@ -55,11 +54,18 @@ model UserCred {
     user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Transaction {
-    id     Int      @id @default(autoincrement())
-    items  Item[]
-    date   DateTime @default(now())
-    price  Float
-    userId String
-    user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Payment {
+    id      Int           @id @default(autoincrement())
+    txnHash String        @unique
+    items   Json[]
+    date    DateTime      @default(now())
+    amount  Float
+    userId  String
+    user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+    status  PaymentStatus @default(PENDING)
+}
+
+enum PaymentStatus {
+    SUCCESS
+    PENDING
 }

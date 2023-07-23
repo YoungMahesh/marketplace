@@ -39,7 +39,6 @@ export default function Home() {
     <>
       <Head>
         <title> Cart | Marketplace</title>
-        <meta name="description" content="Unique Collection of Images" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Header />
