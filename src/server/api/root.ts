@@ -3,6 +3,7 @@ import { itemRouter } from "./routers/item.router";
 import { userRouter } from "./routers/user.router";
 import { cartRouter } from "./routers/cart.router";
 import { stripeRouter } from "./routers/stripe.router";
+import { ordersRouter } from "./routers/orders.router";
 
 /**
  * This is the primary router for your server.
@@ -11,6 +12,7 @@ import { stripeRouter } from "./routers/stripe.router";
  */
 export const appRouter = createTRPCRouter({
   cart: cartRouter,
+  orders: ordersRouter,
   item: itemRouter,
   user: userRouter,
   stripe: stripeRouter,

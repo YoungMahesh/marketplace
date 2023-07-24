@@ -46,6 +46,12 @@ export default function Header() {
                   <Link href="/account">Account</Link>
                 </li>
                 <li>
+                  <Link href="/cart">Cart</Link>
+                </li>
+                <li>
+                  <Link href="/orders">Orders</Link>
+                </li>
+                <li>
                   <a onClick={() => void signOut()}>Log out</a>
                 </li>
               </ul>

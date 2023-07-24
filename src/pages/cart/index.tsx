@@ -11,7 +11,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 
-export default function Home() {
+export default function CartPage() {
   const { data: sessionData } = useSession();
   const { data: cartObj, isLoading: cartLoading } = api.cart.getCart.useQuery(
     undefined,

@@ -9,11 +9,12 @@ datasource db {
 }
 
 model Item {
-    id        Int        @id
+    id        Int         @id
     name      String
     image     String
     price     Float
     cartItems CartItem[]
+    OrderItem OrderItem[]
 }
 
 model Cart {
@@ -43,7 +44,7 @@ model User {
     image         String?
     userCred      UserCred?
     cart          Cart?
-    payments      Payment[]
+    orders        Order[]
 }
 
 model UserCred {
@@ -54,15 +55,25 @@ model UserCred {
     user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Payment {
+model Order {
     id      Int           @id @default(autoincrement())
     txnHash String        @unique
-    items   Json[]
+    items   OrderItem[]
     date    DateTime      @default(now())
     amount  Float
     userId  String
     user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
     status  PaymentStatus @default(PENDING)
+}
+
+model OrderItem {
+    id       Int   @id @default(autoincrement())
+    orderId  Int
+    order    Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+    price    Float
+    itemId   Int
+    item     Item  @relation(fields: [itemId], references: [id], onDelete: Restrict)
+    quantity Int
 }
 
 enum PaymentStatus {

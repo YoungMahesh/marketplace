@@ -20,7 +20,7 @@ export const stripeRouter = createTRPCRouter({
     });
     if (!userCart) throw new Error("User cart not found");
 
-    const line_items = userCart.cartItems.map((cItem) => {
+    const stripe_items = userCart.cartItems.map((cItem) => {
       return {
         price_data: {
           currency: "inr",
@@ -32,33 +32,43 @@ export const stripeRouter = createTRPCRouter({
         quantity: cItem.quantity,
       };
     });
+    const product_items = userCart.cartItems.map((cItem) => {
+      return {
+        itemId: cItem.item.id,
+        price: cItem.item.price,
+        quantity: cItem.quantity,
+      };
+    });
+    console.log({
+      stripe_items: JSON.stringify(stripe_items, null, 2),
+      product_items: JSON.stringify(product_items, null, 2),
+    });
 
-    console.log({ line_items: JSON.stringify(line_items, null, 2) });
-    const session = await stripe.checkout.sessions.create({
-      line_items,
+    const stripeSession = await stripe.checkout.sessions.create({
+      line_items: stripe_items,
       mode: "payment",
       success_url:
         "http://localhost:3000/cart/success?session_id={CHECKOUT_SESSION_ID}",
       cancel_url: "http://localhost:3000/cart/cancel",
     });
 
-    await ctx.prisma.payment.create({
+    await ctx.prisma.order.create({
       data: {
         userId: ctx.session.user.id,
-        txnHash: session.id,
-        amount: session.amount_total ? session.amount_total / 100 : 0,
-        items: line_items.map((it) => {
-          return {
-            name: it.price_data.product_data.name,
-            price: it.price_data.unit_amount / 100,
-            quantity: it.quantity,
-          };
-        }),
+        txnHash: stripeSession.id,
+        amount: stripeSession.amount_total
+          ? stripeSession.amount_total / 100
+          : 0,
+        items: {
+          createMany: {
+            data: product_items,
+          },
+        },
       },
     });
 
-    console.log({ createPayment: session });
-    return session.url;
+    console.log({ stripeSession });
+    return stripeSession.url;
   }),
 
   updateSessionInfo: protectedProcedure
@@ -67,7 +77,7 @@ export const stripeRouter = createTRPCRouter({
       const session = await stripe.checkout.sessions.retrieve(input.session_id);
       if (!session) throw new Error("Session not found");
 
-      const payment = await ctx.prisma.payment.findUnique({
+      const payment = await ctx.prisma.order.findUnique({
         where: {
           txnHash: session.id,
         },
@@ -75,7 +85,7 @@ export const stripeRouter = createTRPCRouter({
       if (!payment) throw new Error("Payment not found");
 
       if (session.payment_status === "paid" && payment.status !== "SUCCESS") {
-        await ctx.prisma.payment.update({
+        await ctx.prisma.order.update({
           where: {
             txnHash: session.id,
           },
