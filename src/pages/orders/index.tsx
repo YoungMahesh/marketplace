@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
 import LoadingImg from "public/loading.gif";
 import { type OrderItem } from "@prisma/client";
+import { getDate } from "~/utils/date.utils";
 
 export default function OrdersPage() {
   const { data: sessionData } = useSession();
@@ -28,7 +29,12 @@ export default function OrdersPage() {
                 return (
                   <div className="ml-auto mr-auto w-80 md:w-96">
                     {Array.from({ length: 3 }).map((el, idx) => (
-                      <OrderItemBox key={idx} isLoading={true} />
+                      <OrderItemBox
+                        key={idx}
+                        orderDate={new Date()}
+                        orderPrice={0}
+                        isLoading={true}
+                      />
                     ))}
                   </div>
                 );
@@ -71,25 +77,64 @@ const OrderItemBox = ({
   isLoading,
 }: {
   orderId?: number;
-  orderDate?: Date;
-  orderPrice?: number;
+  orderDate: Date;
+  orderPrice: number;
   orderItems?: OrderItem[];
   isLoading?: boolean;
 }) => {
   return (
-    <section className="mx-2 my-4 rounded border p-2">
-      <div>
-        <span>Order Placed: {orderDate?.toDateString()}</span>
-        <span>Total: {orderPrice}</span>
-        <span>OrderId: # {orderId}</span>
-      </div>
+    <section className="mx-2 my-4 rounded border-2 border-b-0">
+      <p
+        className="flex flex-wrap justify-between p-2"
+        style={{ backgroundColor: "rgb(240, 242, 242)" }}
+      >
+        <span className="m-1 flex flex-col">
+          <span>Order Placed</span>
+          {isLoading ? (
+            <span className="loading loading-dots loading-md" />
+          ) : (
+            <span> {getDate(orderDate)}</span>
+          )}
+        </span>
+        <span className="m-1 flex flex-col">
+          <span>Total</span>
+          <span>
+            {isLoading ? (
+              <span className="loading loading-dots loading-md" />
+            ) : (
+              <span>&#8377; {orderPrice}</span>
+            )}
+          </span>
+        </span>
+        <span className="m-1 flex flex-col">
+          <span>OrderId</span>
+          <span>
+            {isLoading ? (
+              <span className="loading loading-dots loading-md" />
+            ) : (
+              <span># {orderId}</span>
+            )}
+          </span>
+        </span>
+      </p>
       <div>
         {isLoading
           ? Array.from({ length: 3 }).map((el, idx) => (
-              <ItemBox key={idx} itemId={0} itemPrice={0} isLoading={true} />
+              <ItemBox
+                key={idx}
+                itemId={0}
+                itemPrice={0}
+                quantity={0}
+                isLoading={true}
+              />
             ))
           : orderItems?.map((item, idx) => (
-              <ItemBox key={idx} itemId={item.id} itemPrice={item.price} />
+              <ItemBox
+                key={idx}
+                itemId={item.id}
+                quantity={item.quantity}
+                itemPrice={item.price}
+              />
             ))}
       </div>
     </section>
@@ -98,17 +143,15 @@ const OrderItemBox = ({
 const ItemBox = ({
   itemId,
   itemPrice,
+  quantity,
   isLoading,
 }: {
   itemId: number;
   itemPrice: number;
+  quantity: number;
   isLoading?: boolean;
 }) => {
-  const {
-    data: itemInfo,
-    isLoading: itemInfoLoading,
-    isError: itemInfoErr,
-  } = api.item.get.useQuery(
+  const { data: itemInfo, isError: itemInfoErr } = api.item.get.useQuery(
     {
       itemId,
     },
@@ -123,8 +166,8 @@ const ItemBox = ({
     );
 
   return (
-    <section className="mx-2 my-4 rounded border p-2">
-      <div className="flex">
+    <section className="border-b-2 p-4">
+      <div className="flex flex-wrap items-center justify-around">
         <Image
           className="mask mask-squircle"
           src={itemInfo ? itemInfo.image : LoadingImg}
@@ -133,8 +176,11 @@ const ItemBox = ({
           alt="cart-item"
         />
         <div className="prose ml-4">
-          <h4 className="">{itemInfo ? itemInfo.name : "Loading..."}</h4>
-          <p>&#8377; {!isLoading && itemInfo ? itemPrice : "-"}</p>
+          <h4 className="m-0">{itemInfo ? itemInfo.name : "Loading..."}</h4>
+          <p className="m-0">
+            &#8377; {!isLoading && itemInfo ? itemPrice : "-"} / unit
+          </p>
+          <p className="m-0">Qnt: {quantity}</p>
         </div>
       </div>
     </section>
