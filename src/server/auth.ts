@@ -38,6 +38,10 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/signin",
+  },
   session: {
     strategy: "jwt",
   },
@@ -60,7 +64,7 @@ export const authOptions: NextAuthOptions = {
   // adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "SignIn",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" },

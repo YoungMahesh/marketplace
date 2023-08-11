@@ -60,6 +60,7 @@ export default function Header() {
             <button
               className="btn-primary btn-outline btn"
               onClick={() => void signIn()}
+              // onClick={() => void router.push("/auth/signin")}
             >
               Log In
             </button>
