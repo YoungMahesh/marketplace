@@ -64,6 +64,7 @@ export const authOptions: NextAuthOptions = {
   // adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
+      id: "signin",
       name: "SignIn",
       credentials: {
         username: { label: "Username", type: "text" },
@@ -80,28 +81,53 @@ export const authOptions: NextAuthOptions = {
               user: true,
             },
           });
-
-          if (userCred === null) {
-            const userCred1 = await prisma.userCred.create({
-              data: {
-                username,
-                password,
-                user: {
-                  create: {
-                    name: username,
-                  },
-                },
-              },
-              include: {
-                user: true,
-              },
-            });
-            return userCred1.user;
-          }
+          if (userCred === null) throw new Error("User not found");
           if (password === userCred.password) return userCred.user;
-          return null;
+          else throw new Error("Incorrect password");
         }
         return null;
+      },
+    }),
+    CredentialsProvider({
+      id: "signup",
+      name: "SignUp",
+      credentials: {
+        username: { label: "Username", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials) return null;
+        const { username, password } = credentials;
+        const userCred = await prisma.userCred.findUnique({
+          where: {
+            username,
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        if (userCred) throw new Error("User already exists");
+        if (username.length < 3)
+          throw new Error("Username must be at least 3 characters long");
+        if (password.length < 3)
+          throw new Error("Password must be at least 3 characters long");
+
+        const userCred1 = await prisma.userCred.create({
+          data: {
+            username,
+            password,
+            user: {
+              create: {
+                name: username,
+              },
+            },
+          },
+          include: {
+            user: true,
+          },
+        });
+        return userCred1.user;
       },
     }),
     /**

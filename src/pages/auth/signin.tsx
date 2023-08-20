@@ -21,6 +21,8 @@ export default function SignIn({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [signUpUsername, setSignUpUsername] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
 
   const signIn1 = async () => {
     const signInProvider = Object.values(providers)[0];
@@ -34,7 +36,27 @@ export default function SignIn({
     if (result && result.status === 200) {
       window.location.href = "/";
     } else {
-      alert("Login Failed");
+      if (result) alert(result.error);
+      else alert("Login Failed");
+    }
+  };
+
+  const signUp1 = async () => {
+    console.log(providers);
+    const signInProvider = Object.values(providers)[1];
+    if (!signInProvider)
+      return alert("Failed to fetch information from server");
+    const result = await signIn(signInProvider.id, {
+      username,
+      password,
+      redirect: false,
+    });
+    if (result && result.status === 200) {
+      window.location.href = "/";
+    } else {
+      console.log({ result });
+      if (result) alert(result.error);
+      else alert("SignUp Failed");
     }
   };
 
@@ -63,6 +85,31 @@ export default function SignIn({
           onClick={() => void signIn1()}
         >
           Sign In
+        </button>
+      </div>
+
+      <div className="m-2 m-2 mt-6 flex flex-col items-center">
+        <input
+          type="text"
+          name="username"
+          placeholder="Username"
+          className="input-bordered input w-full max-w-xs"
+          value={signUpUsername}
+          onChange={(e) => setSignUpUsername(e.target.value)}
+        />
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          className="input-bordered input w-full max-w-xs"
+          value={signUpPassword}
+          onChange={(e) => setSignUpPassword(e.target.value)}
+        />
+        <button
+          className="btn-primary btn-outline btn mt-2 w-full max-w-xs"
+          onClick={() => void signUp1()}
+        >
+          Sign Up
         </button>
       </div>
     </div>
