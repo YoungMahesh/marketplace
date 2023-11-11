@@ -13,10 +13,13 @@ import { type Dispatch, type SetStateAction, useEffect, useState } from "react";
 
 export default function CartPage() {
   const { data: sessionData } = useSession();
-  const { data: cartObj, isLoading: cartLoading } = api.cart.getCart.useQuery(
-    undefined,
-    { enabled: sessionData && sessionData.user ? true : false }
-  );
+  const {
+    data: cartObj,
+    isLoading: cartLoading,
+    isError: cartObjErr,
+  } = api.cart.getCart.useQuery(undefined, {
+    enabled: sessionData && sessionData.user ? true : false,
+  });
   const { mutateAsync: createPayment } = api.stripe.createPayment.useMutation();
 
   const [totalPr, setTotalPr] = useState(0);
@@ -60,6 +63,10 @@ export default function CartPage() {
                     ))}
                   </div>
                 );
+              if (cartObjErr)
+                return <p className="text-center">Failed to load Items.</p>;
+              if (!cartObj || !cartObj.cartItems.length)
+                return <p className="text-center">Cart is Empty.</p>;
               if (cartObj)
                 return (
                   <div className="ml-auto mr-auto w-80 md:w-96">
@@ -74,28 +81,21 @@ export default function CartPage() {
                       />
                     ))}
                     <>
-                      {cartObj.cartItems.length === 0 ? (
-                        <p>Cart is Empty.</p>
-                      ) : (
-                        <>
-                          <div className="prose">
-                            <h3>Total Amount: &#8377; {totalPr} </h3>
-                          </div>
-                          <div className="mt-2 flex justify-end">
-                            <button
-                              className="btn-primary btn"
-                              onClick={() => void checkoutTxn()}
-                            >
-                              Checkout
-                            </button>
-                          </div>
-                        </>
-                      )}
+                      <div className="prose">
+                        <h3>Total Amount: &#8377; {totalPr} </h3>
+                      </div>
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          className="btn-primary btn"
+                          onClick={() => void checkoutTxn()}
+                        >
+                          Checkout
+                        </button>
+                      </div>
                     </>
                   </div>
                 );
-
-              return <p>Failed to load Items.</p>;
+              return <p className="text-center">Server side error.</p>;
             })()}
           </div>
         ) : null}
